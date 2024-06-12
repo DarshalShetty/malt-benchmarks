@@ -6,6 +6,7 @@
 (require (only-in malt/flat-tensors
                   (make-printable flat-make-printable)))
 
+(define stdout (current-output-port))
 (define iterations (make-parameter 10))
 
 (define (benchmark-prim1 flat-f acc-f name-f (base-shape '()))
@@ -48,6 +49,7 @@
     (call-with-output-file (format "benchmark-~a.csv" function) #:exists 'replace
     (λ (out)
       (parameterize ((current-output-port out))
+        (fprintf stdout "Benchmarking ~a...~n" function)
         (benchmark-prim1 (string->procedure (format "flat-~a-ρ" function))
                          (string->procedure (format "acc-~a-ρ" function))
                          function)))))
@@ -56,6 +58,7 @@
     (call-with-output-file (format "benchmark-~a.csv" function) #:exists 'replace
     (λ (out)
       (parameterize ((current-output-port out))
+        (fprintf stdout "Benchmarking ~a...~n" function)
         (benchmark-prim1 (string->procedure (format "flat-~a-ρ" function))
                          (string->procedure (format "acc-~a-ρ" function))
                          function
