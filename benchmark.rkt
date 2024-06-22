@@ -42,10 +42,25 @@
     (acc-sum-ρ
       (acc-*-ρ w t))))
 
+(define (benchmark-sum)
+  (printf "Input size, sum thread Accelerated CPU, sum thread Accelerated Real, sum thread Accelerated GC, sum thread Flat CPU, sum thread Flat Real, sum thread Flat GC~n")
+  (for ((inner-size-magnitude (in-range 1 10)))
+    (define input-shape (cons 100000 (list (expt 10 inner-size-magnitude))))
+    (define size (apply * input-shape))
+    (define numbers (build-list size (λ _ (floor (* 100 (random))))))
+    (define flat-in (flat-reshape input-shape (flat-list->tensor numbers)))
+    (define acc-in (acc-reshape input-shape (acc-list->tensor numbers)))
+    (define-values (flat-res flat-cpu flat-real flat-gc) (time-apply (λ () (flat-sum-ρ flat-in)) '()))
+    (define-values (acc-res acc-cpu acc-real acc-gc) (time-apply (λ () (acc-sum-ρ acc-in)) '()))
+    #;(printf "Flat Input: ~a~n" (flat-make-printable flat-in))
+    #;(printf "Flat Output: ~a~n" (flat-make-printable (list-ref flat-res 0)))
+    #;(printf "Accelerated Input: ~a~n" (acc-make-printable acc-in))
+    #;(printf "Accelerated Output: ~a~n" (acc-make-printable (list-ref acc-res 0)))
+    (printf "~a, ~a, ~a, ~a, ~a, ~a, ~a~n" size acc-cpu acc-real acc-gc flat-cpu flat-real flat-gc)))
 
 (define (main)
   (define prim1-0-functions '("sqrt" "rectify" "abs" "exp" "log"))
-  (for ((function prim1-0-functions))
+  #;(for ((function prim1-0-functions))
     (call-with-output-file (format "benchmark-~a.csv" function) #:exists 'replace
     (λ (out)
       (parameterize ((current-output-port out))
@@ -53,8 +68,8 @@
         (benchmark-prim1 (string->procedure (format "flat-~a-ρ" function))
                          (string->procedure (format "acc-~a-ρ" function))
                          function)))))
-  (define prim1-1-functions '("sum" "max" "argmax"))
-  (for ((function prim1-1-functions))
+  (define prim1-1-functions '(#;"sum" #;"max" "argmax"))
+  #;(for ((function prim1-1-functions))
     (call-with-output-file (format "benchmark-~a.csv" function) #:exists 'replace
     (λ (out)
       (parameterize ((current-output-port out))
@@ -62,5 +77,10 @@
         (benchmark-prim1 (string->procedure (format "flat-~a-ρ" function))
                          (string->procedure (format "acc-~a-ρ" function))
                          function
-                         '(100)))))))
+                         '(100))))))
+  (call-with-output-file "benchmark-sum-saturation.csv"  #:exists 'replace
+    (λ (out)
+      (parameterize ((current-output-port out))
+        (fprintf stdout "Benchmarking sum saturation...~n")
+        (benchmark-sum)))))
 (main)
