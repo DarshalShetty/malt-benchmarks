@@ -43,9 +43,9 @@
       (acc-*-ρ w t))))
 
 (define (benchmark-sum)
-  (printf "Input size, sum thread Accelerated CPU, sum thread Accelerated Real, sum thread Accelerated GC, sum thread Flat CPU, sum thread Flat Real, sum thread Flat GC~n")
+  (printf "Inner size magnitude, sum thread Accelerated CPU, sum thread Accelerated Real, sum thread Accelerated GC, sum thread Flat CPU, sum thread Flat Real, sum thread Flat GC~n")
   (for ((inner-size-magnitude (in-range 1 10)))
-    (define input-shape (cons 100000 (list (expt 10 inner-size-magnitude))))
+    (define input-shape (cons 1000 (list (expt 10 inner-size-magnitude))))
     (define size (apply * input-shape))
     (define numbers (build-list size (λ _ (floor (* 100 (random))))))
     (define flat-in (flat-reshape input-shape (flat-list->tensor numbers)))
@@ -56,7 +56,8 @@
     #;(printf "Flat Output: ~a~n" (flat-make-printable (list-ref flat-res 0)))
     #;(printf "Accelerated Input: ~a~n" (acc-make-printable acc-in))
     #;(printf "Accelerated Output: ~a~n" (acc-make-printable (list-ref acc-res 0)))
-    (printf "~a, ~a, ~a, ~a, ~a, ~a, ~a~n" size acc-cpu acc-real acc-gc flat-cpu flat-real flat-gc)))
+    (printf "~a, ~a, ~a, ~a, ~a, ~a, ~a~n"
+            inner-size-magnitude acc-cpu acc-real acc-gc flat-cpu flat-real flat-gc)))
 
 (define (main)
   (define prim1-0-functions '("sqrt" "rectify" "abs" "exp" "log"))
